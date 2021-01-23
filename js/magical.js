@@ -119,6 +119,26 @@ class Checkbox {
   }
 }
 
+class Textbox {
+  constructor(x, y, width, height, text) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.text = text;
+  }
+
+  draw(ctx) {
+    ctx.fillStyle = "black";
+    if(touchInterface) {
+      ctx.font = "28px Arial";
+      ctx.fillText(this.text, this.x , this.y + (this.height * 0.5) + 10);
+    } else {
+      ctx.font = "18px Arial";
+      ctx.fillText(this.text, this.x, this.y + (this.height * 0.5) + 5);
+    }
+  }
+}
 
 //functions:
 
@@ -228,6 +248,10 @@ function update() {
 
   if (bOrthocenter.checked) {
     drawOrthocenter();
+  }
+
+  if (bIntrocenter.checked) {
+    drawIntrocenter();
   }
 
   if(bEulerline.checked) {
@@ -353,9 +377,39 @@ function drawOrthocenter() {
   orthoLine3.draw(ctx, "blue");
 }
 
+function drawIntrocenter() {
+  AB = Math.round(distanceBetweenPoints(A, B));
+  BC = Math.round(distanceBetweenPoints(B, C));
+  AC = Math.round(distanceBetweenPoints(A, C));
+
+  P = AB + BC + AC;
+
+  x = (BC * A.x + AC * B.x + AB * C.x) / P;
+  y = (BC * A.y + AC * B.y + AB * C.y) / P;
+
+  introcenter = new Point(x, y);
+  introcenter.draw(ctx, "yellow");
+
+  introLine1 = new Line(A, introcenter);
+  introLine1.draw(ctx, "yellow");
+  introLine2 = new Line(B, introcenter);
+  introLine2.draw(ctx, "yellow");
+  introLine3 = new Line(C, introcenter);
+  introLine3.draw(ctx, "yellow");
+
+  s = (AB + BC + AC) / 2;
+  sa = s - AB;
+  sb = s - BC;
+  sc = s - AC;
+
+  radius = Math.sqrt((sa * sb * sc) / s);
+  circle = new Circle(introcenter.x, introcenter.y, radius);
+  circle.draw(ctx, "yellow");
+}
+
 function drawEulerLine() {
   l = new Line(orthocenter, circumcenter);
-  l.draw(ctx, "yellow");
+  l.draw(ctx, "purple");
 }
 
 //TODO build a check to not draw the eulerline if any of the others are unchecked.
@@ -367,6 +421,8 @@ function drawHUD() {
   for (c in checkboxes) {
     checkboxes[c].draw(ctx);
   }
+
+  hint.draw(ctx);
 }
 
 //Utility functions:
@@ -392,8 +448,8 @@ function distanceBetweenPoints(p1 , p2) {
 //Start here
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-var canvas_width = 960;
-var canvas_height = 640;
+var canvas_width = window.innerWidth;
+var canvas_height = window.innerHeight;
 
 canvas.width = canvas_width;
 canvas.height = canvas_height;
@@ -414,20 +470,24 @@ if (typeof window.ontouchstart !== 'undefined') {
   touchInterface = true;
 }
 
-var bCentroid = new Checkbox(20, 20, 15, 15, "Centroid", "red");
-var bOrthocenter = new Checkbox(20, 40, 15, 15, "Orthocenter", "blue");
-var bCircumcenter = new Checkbox(20, 60, 15, 15, "Circumcenter", "green");
-var bEulerline = new Checkbox(20, 80, 15, 15, "Euler Line", "yellow");
+var hint = new Textbox(20, 20, 15, 15, "Move point A, B or C the change the size of the triangle");
+var bCentroid = new Checkbox(20, 40, 15, 15, "Centroid", "red");
+var bOrthocenter = new Checkbox(20, 60, 15, 15, "Orthocenter", "blue");
+var bCircumcenter = new Checkbox(20, 80, 15, 15, "Circumcenter", "green");
+var bIntrocenter = new Checkbox(20, 100, 15, 15, "Introcenter", "yellow");
+var bEulerline = new Checkbox(20, 120, 15, 15, "Euler Line", "purple");
 
 //Touch event handlers
 if (touchInterface) {
-  bCentroid = new Checkbox(20, 20, 30, 30, "Centroid", "red");
-  bOrthocenter = new Checkbox(20, 60, 30, 30, "Orthocenter", "blue");
-  bCircumcenter = new Checkbox(20, 100, 30, 30, "Circumcenter", "green");
-  bEulerline = new Checkbox(20, 140, 30, 30, "Euler Line", "yellow");
+  var hint = new Textbox(20, 20, 30, 30, "Move point A, B or C the change the size of the triangle");
+  bCentroid = new Checkbox(20, 60, 30, 30, "Centroid", "red");
+  bOrthocenter = new Checkbox(20, 100, 30, 30, "Orthocenter", "blue");
+  bCircumcenter = new Checkbox(20, 140, 30, 30, "Circumcenter", "green");
+  bIntrocenter = new Checkbox(20, 180, 30, 30, "Introcenter", "yellow");
+  bEulerline = new Checkbox(20, 220, 30, 30, "Euler Line", "purple");
 }
 
-var checkboxes = [bCentroid, bOrthocenter, bCircumcenter, bEulerline];
+var checkboxes = [bCentroid, bOrthocenter, bCircumcenter, bIntrocenter, bEulerline];
 
 //Mouse event handlers
 canvas.onmousedown = mouseStart;
